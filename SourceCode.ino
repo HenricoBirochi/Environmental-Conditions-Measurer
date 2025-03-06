@@ -418,7 +418,7 @@ void verifyLDR() {
     digitalWrite(ledGre, LOW);
 
     //Caso a temperatura tenha sido normalizada, desliga a luz de alerta da temperatura e seu som no buzzer
-    if (lastAvgTemp >= 10 && lastAvgTemp <= 15){
+    if (lastAvgTemp >= 20 && lastAvgTemp <= 25){
       digitalWrite(ledYel, LOW);
       noTone(pinBUZ);
     }
