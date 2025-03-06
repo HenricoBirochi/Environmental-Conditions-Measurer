@@ -267,7 +267,7 @@ void show_data() {
 
 // Exibe a temperatura no LCD
 void show_temp() {
-  if ((lastAvgTemp < 10 || lastAvgTemp > 15) && lastAvgTemp != 0) {
+  if ((lastAvgTemp < 20 || lastAvgTemp > 25) && lastAvgTemp != 0) {
     digitalWrite(ledYel, HIGH);
     digitalWrite(ledGre, LOW);
     tone(pinBUZ, 500);
@@ -311,12 +311,12 @@ void term_image(float temp) {
   byte termHig1[8] = {B00100, B01110, B01110, B01110, B01110, B01110, B01110, B01110};
 
   // Cria os caracteres personalizados e os exibe no LCD, dependendo da temperatura
-  if (temp < 10) {
+  if (temp < 20) {
     lcd.createChar(9, termLow1);
     lcd.createChar(10, termLow2);
     messageTemplate("Temp. Baixa");
 
-  } else if (temp > 15) {
+  } else if (temp > 25) {
     lcd.createChar(9, termHig1);
     lcd.createChar(10, termHig2);
     messageTemplate("Temp. Alta");
