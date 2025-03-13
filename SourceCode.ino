@@ -1,14 +1,19 @@
 #include <Wire.h>
+#include "RTClib.h"
 #include <LiquidCrystal_I2C.h>
 #include <DHT.h>
+
 
 #define col 16     // Número de colunas do display
 #define lin 2      // Número de linhas do display
 #define ende 0x27  // Endereço do display
 
 #define DHTPIN 7           // Pino do DHT
-#define DHTTYPE DHT11      // Tipo de sensor DHT
+#define DHTTYPE DHT22      // Tipo de sensor DHT
 DHT dht(DHTPIN, DHTTYPE);  // DHT
+RTC_DS1307 rtc;
+char daysOfTheWeek[7][12] = {"Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"};
+
 
 byte degreesSymbol[8] = {
   0b11100,
@@ -28,7 +33,6 @@ const int greenPin = 10;
 const int bluePin = 11;
 const int buttonScreen = 6;
 const int buttonConfig = 5;
-const int pinLDR = A0;
 
 void setColor(int red, int green, int blue) {
   analogWrite(redPin, red);
@@ -56,6 +60,7 @@ const long interval = 5000;
 void setup() {
   currentScreen = 0;
   Serial.begin(9600);
+  Serial.println("Sistema Inicializado!");
 
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
@@ -66,6 +71,12 @@ void setup() {
   lastButtonConfigState = digitalRead(buttonConfig);
 
   dht.begin();
+
+  if(! rtc.begin()) { 
+    Serial.println("DS1307 não encontrado"); 
+    while(1); 
+  }
+  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 
   lcd.init();
   lcd.backlight();
@@ -98,8 +109,8 @@ void loop() {
 
 
   float humid = dht.readHumidity();
-  float luminosity = analogRead(pinLDR);
-  float lumen = map(luminosity, 444, 969, 0, 100);
+
+  float lumen = fakeLuminosity();
 
   // Definir a faixa de temperatura
   float minTemp = 15.0;
@@ -107,7 +118,7 @@ void loop() {
   float maxHumidity = 50;
   float minHumidity = 30;
   float maxLuminosity = 30;
-  
+
 
   const int debounceDelay = 50;
   unsigned long lastDebounceTime = 0;
@@ -256,22 +267,41 @@ void loop() {
     unsigned long currentMillis = millis();
 
     if (currentMillis - previousMillis >= interval) {
-      previousMillis = currentMillis;
+    previousMillis = currentMillis;
+    DateTime now = rtc.now(); //CHAMADA DE FUNÇÃO
+    Serial.println(F("------------------------------"));
+    Serial.print("Data: "); //IMPRIME O TEXTO NO MONITOR SERIAL
+    Serial.print(now.day(), DEC); //IMPRIME NO MONITOR SERIAL O DIA
+    Serial.print('/'); //IMPRIME O CARACTERE NO MONITOR SERIAL
+    Serial.print(now.month(), DEC); //IMPRIME NO MONITOR SERIAL O MÊS
+    Serial.print('/'); //IMPRIME O CARACTERE NO MONITOR SERIAL
+    Serial.print(now.year(), DEC); //IMPRIME NO MONITOR SERIAL O ANO
+    Serial.print(" / Dia: "); //IMPRIME O TEXTO NA SERIAL
+    Serial.print(daysOfTheWeek[now.dayOfTheWeek()]); //IMPRIME NO MONITOR SERIAL O DIA
+    Serial.print(" / Horas: "); //IMPRIME O TEXTO NA SERIAL
+    Serial.print(now.hour(), DEC); //IMPRIME NO MONITOR SERIAL A HORA
+    Serial.print(':'); //IMPRIME O CARACTERE NO MONITOR SERIAL
+    Serial.print(now.minute(), DEC); //IMPRIME NO MONITOR SERIAL OS MINUTOS
+    Serial.print(':'); //IMPRIME O CARACTERE NO MONITOR SERIAL
+    Serial.print(now.second(), DEC); //IMPRIME NO MONITOR SERIAL OS SEGUNDOS
+    Serial.println(); //QUEBRA DE LINHA NA SERIAL
 
-       Serial.println(F("------ Dados de Sensores ------"));
-       Serial.print(F("Temperatura: "));
-       Serial.print(temp);
-       Serial.println(F(" °C"));
+    Serial.println(F("------ Dados de Sensores ------"));
+    Serial.print(F("Temperatura: "));
+    Serial.print(temp);
+    Serial.println(F(" °C"));
 
-       Serial.print(F("Umidade: "));
-       Serial.print(humid);
-       Serial.println(F(" %"));
+    Serial.print(F("Umidade: "));
+    Serial.print(humid);
+    Serial.println(F(" %"));
 
-       Serial.print(F("Luminosidade: "));
-       Serial.print(lumen);
-       Serial.println(F(" %"));
-       Serial.println(F("------------------------------"));
-      
+    Serial.print(F("Luminosidade: "));
+    Serial.print(lumen);
+    Serial.println(F(" %"));
+    Serial.println(F("------------------------------"));
+
+
+
     }
   }
 }
