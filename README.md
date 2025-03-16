@@ -86,20 +86,10 @@ O código está comentado para facilitar o entendimento e modificação.
 ---
 
 ## 🎥 **Demonstração em Vídeo**  
-📌 *(Adicione aqui o link do vídeo demonstrativo do projeto no YouTube.)*  
+📌 *(link do vídeo a ser adicionado no YouTube.)*  
 
----
-
-## 🚀 **Entrega do Projeto**  
-✅ **Hands-on:** 20/03 (5 minutos por equipe)  
-✅ **Entrega do GitHub:** Até 20/03 às 23h45  
-✅ **Link do vídeo:** Até 20/03 às 23h45  
-
-📌 **Formulário de Entrega:** [Acesse aqui](https://forms.office.com/r/xf2F38c8Um)  
-
----
 
 ## 🤝 **Créditos e Contribuições**  
-Desenvolvido por **[Seu Nome e Sua Equipe]**.  
+Desenvolvido por **Edgar C S Ribeiro, Vitor A Braghittoni, Henrico Birochi e Nicholas Birochi**.  
 
 Se gostou do projeto, ⭐ deixe um star no repositório!  
