@@ -4,17 +4,23 @@
 #include <DHT.h>
 #include <EEPROM.h>
 
+// Definir se o código está sendo executado em um sistema real (1) ou no simulador (0)
+#define IS_REAL_SYSTEM 0 
+
 #define col 16     // Número de colunas do display
 #define lin 2      // Número de linhas do display
 #define ende 0x27  // Endereço do display
 
-#define DHTPIN 7  // Pino do DHT
-//#define DHTTYPE DHT11      // Tipo de sensor DHT para versão real
-#define DHTTYPE DHT22      // Tipo de sensor DHT para versão Wokwi
-DHT dht(DHTPIN, DHTTYPE);  // DHT d
+#define DHTPIN 7  
+#if IS_REAL_SYSTEM
+    #define DHTTYPE DHT11  // Tipo de sensor DHT para versão real
+    RTC_DS3231 rtc;         // RTC para sistema real
+#else
+    #define DHTTYPE DHT22  // Tipo de sensor DHT para versão Wokwi
+    RTC_DS1307 rtc;        // RTC para simulador Wokwi
+#endif
 
-// RTC_DS3231 rtc; //Versão Real
-RTC_DS1307 rtc;  // Versão Wokwi
+DHT dht(DHTPIN, DHTTYPE);  
 
 char daysOfTheWeek[7][12] = { "Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado" };
 
@@ -128,8 +134,12 @@ void loop() {
 
   float humid = dht.readHumidity();
   float luminosity = analogRead(pinLDR);
-  // float lumen = map(luminosity, 444, 969, 0, 100); //Versão Real
-  float lumen = fakeLuminosity();
+  
+  #if IS_REAL_SYSTEM
+    float lumen = map(luminosity, 444, 969, 0, 100);
+  #else
+    float lumen = fakeLuminosity();
+  #endif
 
   // Definir a faixa de temperatura
   float minTemp = 15.0;
