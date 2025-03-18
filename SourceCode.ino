@@ -2,16 +2,20 @@
 #include <LiquidCrystal_I2C.h>
 #include "RTClib.h"
 #include <DHT.h>
+#include <EEPROM.h>
 
 #define col 16     // Número de colunas do display
 #define lin 2      // Número de linhas do display
 #define ende 0x27  // Endereço do display
 
-#define DHTPIN 7           // Pino do DHT
-#define DHTTYPE DHT11      // Tipo de sensor DHT
-DHT dht(DHTPIN, DHTTYPE);  // DHT
+#define DHTPIN 7  // Pino do DHT
+//#define DHTTYPE DHT11      // Tipo de sensor DHT para versão real
+#define DHTTYPE DHT22      // Tipo de sensor DHT para versão Wokwi
+DHT dht(DHTPIN, DHTTYPE);  // DHT d
 
-RTC_DS3231 rtc;
+// RTC_DS3231 rtc; //Versão Real
+RTC_DS1307 rtc;  // Versão Wokwi
+
 char daysOfTheWeek[7][12] = { "Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado" };
 
 byte degreesSymbol[8] = {
@@ -32,7 +36,7 @@ const int greenPin = 10;
 const int bluePin = 11;
 const int buttonScreen = 6;
 const int buttonConfig = 5;
-const int pinLDR = A0;
+const int pinLDR = A0;  // Pino Photo-Resistor
 
 void setColor(int red, int green, int blue) {
   analogWrite(redPin, red);
@@ -53,13 +57,24 @@ int lastButtonConfigState = 0;
 bool configMode = false;
 int tempUnit = 0;
 
-
-unsigned long previousMillis = 0;
+// Configuração do intervalo por millis()
+unsigned long writeDelay = 0;
+unsigned long logDelay = 0;
 const long interval = 5000;
+
+// Configurações da EEPROM
+const int maxRecords = 100;
+const int recordSize = 8;  // Tamanho de cada registro em bytes
+int startAddress = 0;
+int endAddress = maxRecords * recordSize;
+int currentAddress = 0;
+
+int lastLoggedMinute = -1;
 
 void setup() {
   currentScreen = 0;
   Serial.begin(9600);
+  Serial.println("Sistema Inicializado!");
 
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
@@ -73,7 +88,8 @@ void setup() {
 
   if (!rtc.begin()) {
     Serial.println("RTC não encontrado");
-    while(1);
+    while (1)
+      ;
   }
   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 
@@ -81,9 +97,13 @@ void setup() {
   lcd.backlight();
   lcd.clear();
   lcd.createChar(5, degreesSymbol);
+  EEPROM.begin();
 }
 
 void loop() {
+
+  unsigned long currentMillis = millis();
+
   buttonScreenState = digitalRead(buttonScreen);
   buttonConfigState = digitalRead(buttonConfig);
 
@@ -106,10 +126,10 @@ void loop() {
       break;
   }
 
-
   float humid = dht.readHumidity();
   float luminosity = analogRead(pinLDR);
-  float lumen = map(luminosity, 444, 969, 0, 100);
+  // float lumen = map(luminosity, 444, 969, 0, 100); //Versão Real
+  float lumen = fakeLuminosity();
 
   // Definir a faixa de temperatura
   float minTemp = 15.0;
@@ -118,6 +138,21 @@ void loop() {
   float minHumidity = 30;
   float maxLuminosity = 30;
 
+  DateTime now = rtc.now();
+
+  if (temperatureC < minTemp || temperatureC > maxTemp || humid < minHumidity || humid > maxHumidity) {
+    if (currentMillis - writeDelay >= interval) {
+      writeDelay = currentMillis;
+      int tempCInt = (int)(temperatureC * 100);
+      int humidInt = (int)(humid * 100);
+
+      EEPROM.put(currentAddress, now.unixtime());
+      EEPROM.put(currentAddress + 4, tempCInt);
+      EEPROM.put(currentAddress + 6, humidInt);
+
+      getNextAddress();
+    }
+  }
 
   const int debounceDelay = 50;
   unsigned long lastDebounceTime = 0;
@@ -261,44 +296,80 @@ void loop() {
         break;
     }
 
+    if (currentMillis - logDelay >= interval) {
+      logDelay = currentMillis;
 
+      get_log();
 
-    unsigned long currentMillis = millis();
+      // DateTime now = rtc.now();  //CHAMADA DE FUNÇÃO
+      // Serial.println(F("------------------------------"));
+      // Serial.print("Data: ");                           //IMPRIME O TEXTO NO MONITOR SERIAL
+      // Serial.print(now.day(), DEC);                     //IMPRIME NO MONITOR SERIAL O DIA
+      // Serial.print('/');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
+      // Serial.print(now.month(), DEC);                   //IMPRIME NO MONITOR SERIAL O MÊS
+      // Serial.print('/');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
+      // Serial.print(now.year(), DEC);                    //IMPRIME NO MONITOR SERIAL O ANO
+      // Serial.print(" / Dia: ");                         //IMPRIME O TEXTO NA SERIAL
+      // Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);  //IMPRIME NO MONITOR SERIAL O DIA
+      // Serial.print(" / Horas: ");                       //IMPRIME O TEXTO NA SERIAL
+      // Serial.print(now.hour(), DEC);                    //IMPRIME NO MONITOR SERIAL A HORA
+      // Serial.print(':');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
+      // Serial.print(now.minute(), DEC);                  //IMPRIME NO MONITOR SERIAL OS MINUTOS
+      // Serial.print(':');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
+      // Serial.print(now.second(), DEC);                  //IMPRIME NO MONITOR SERIAL OS SEGUNDOS
+      // Serial.println();                                 //QUEBRA DE LINHA NA SERIAL
 
-    if (currentMillis - previousMillis >= interval) {
-      previousMillis = currentMillis;
+      // Serial.println(F("------ Dados de Sensores ------"));
+      // Serial.print(F("Temperatura: "));
+      // Serial.print(temp);
+      // Serial.println(F(" °C"));
 
-      DateTime now = rtc.now();  //CHAMADA DE FUNÇÃO
-      Serial.println(F("------------------------------"));
-      Serial.print("Data: ");                           //IMPRIME O TEXTO NO MONITOR SERIAL
-      Serial.print(now.day(), DEC);                     //IMPRIME NO MONITOR SERIAL O DIA
-      Serial.print('/');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
-      Serial.print(now.month(), DEC);                   //IMPRIME NO MONITOR SERIAL O MÊS
-      Serial.print('/');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
-      Serial.print(now.year(), DEC);                    //IMPRIME NO MONITOR SERIAL O ANO
-      Serial.print(" / Dia: ");                         //IMPRIME O TEXTO NA SERIAL
-      Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);  //IMPRIME NO MONITOR SERIAL O DIA
-      Serial.print(" / Horas: ");                       //IMPRIME O TEXTO NA SERIAL
-      Serial.print(now.hour(), DEC);                    //IMPRIME NO MONITOR SERIAL A HORA
-      Serial.print(':');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
-      Serial.print(now.minute(), DEC);                  //IMPRIME NO MONITOR SERIAL OS MINUTOS
-      Serial.print(':');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
-      Serial.print(now.second(), DEC);                  //IMPRIME NO MONITOR SERIAL OS SEGUNDOS
-      Serial.println();                                 //QUEBRA DE LINHA NA SERIAL
+      // Serial.print(F("Umidade: "));
+      // Serial.print(humid);
+      // Serial.println(F(" %"));
 
-      Serial.println(F("------ Dados de Sensores ------"));
-      Serial.print(F("Temperatura: "));
-      Serial.print(temp);
-      Serial.println(F(" °C"));
+      // Serial.print(F("Luminosidade: "));
+      // Serial.print(lumen);
+      // Serial.println(F(" %"));
+      // Serial.println(F("------------------------------"));
+    }
+  }
+}
 
-      Serial.print(F("Umidade: "));
-      Serial.print(humid);
-      Serial.println(F(" %"));
+void getNextAddress() {
+  currentAddress += recordSize;
+  if (currentAddress >= endAddress) {
+    currentAddress = startAddress;  // Volta para o começo se atingir o limite
+  }
+}
 
-      Serial.print(F("Luminosidade: "));
-      Serial.print(lumen);
-      Serial.println(F(" %"));
-      Serial.println(F("------------------------------"));
+void get_log() {
+  Serial.println("Data stored in EEPROM:");
+  Serial.println("Timestamp\t\tTemperature\tHumidity");
+
+  for (int address = startAddress; address < endAddress; address += recordSize) {
+    long timeStamp;
+    int tempInt, humiInt;
+
+    // Ler dados da EEPROM
+    EEPROM.get(address, timeStamp);
+    EEPROM.get(address + 4, tempInt);
+    EEPROM.get(address + 6, humiInt);
+
+    // Converter valores
+    float temperature = tempInt / 100.0;
+    float humidity = humiInt / 100.0;
+
+    // Verificar se os dados são válidos antes de imprimir
+    if (timeStamp != 0xFFFFFFFF) {  // 0xFFFFFFFF é o valor padrão de uma EEPROM não inicializada
+      //Serial.print(timeStamp);
+      DateTime dt = DateTime(timeStamp);
+      Serial.print(dt.timestamp(DateTime::TIMESTAMP_FULL));
+      Serial.print("\t");
+      Serial.print(temperature);
+      Serial.print(" C\t\t");
+      Serial.print(humidity);
+      Serial.println(" %");
     }
   }
 }
