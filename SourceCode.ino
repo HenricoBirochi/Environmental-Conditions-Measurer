@@ -3,6 +3,7 @@
 #include "RTClib.h"
 #include <DHT.h>
 #include <EEPROM.h>
+#include "pitches.h"
 
 // Definir se o código está sendo executado em um sistema real (1) ou no simulador (0)
 #define IS_REAL_SYSTEM 0 
@@ -43,6 +44,7 @@ const int bluePin = 11;
 const int buttonScreen = 6;
 const int buttonConfig = 5;
 const int pinLDR = A0;  // Pino Photo-Resistor
+const int melodyPin = 7;
 
 void setColor(int red, int green, int blue) {
   analogWrite(redPin, red);
@@ -77,6 +79,14 @@ int currentAddress = 0;
 
 int lastLoggedMinute = -1;
 
+int melody[] = {
+  NOTE_G4, NOTE_FS4, NOTE_DS4, NOTE_A3, NOTE_GS3, NOTE_E4, NOTE_GS4, NOTE_C5
+};
+
+int noteDurations[] = {
+  4, 4, 4, 4, 4, 4, 4, 4
+};
+
 void setup() {
   currentScreen = 0;
   Serial.begin(9600);
@@ -87,6 +97,7 @@ void setup() {
   pinMode(bluePin, OUTPUT);
   pinMode(buttonScreen, INPUT_PULLUP);
   pinMode(buttonConfig, INPUT_PULLUP);
+  pinMode(melodyPin, OUTPUT);
   lastButtonScreenState = digitalRead(buttonScreen);
   lastButtonConfigState = digitalRead(buttonConfig);
 
@@ -159,6 +170,8 @@ void loop() {
        EEPROM.put(currentAddress, now.unixtime());
        EEPROM.put(currentAddress + 4, tempCInt);
        EEPROM.put(currentAddress + 6, humidInt);
+
+        melody();
  
        getNextAddress();
      }
@@ -381,5 +394,18 @@ void get_log() {
       Serial.print(humidity);
       Serial.println(" %");
     }
+  }
+}
+
+void melody() {
+    for (int thisNote = 0; thisNote < 8; thisNote++) {
+
+    int noteDuration = 1000 / noteDurations[thisNote];
+    tone(7, melody[thisNote], noteDuration);
+
+    int pauseBetweenNotes = noteDuration * 1.30;
+    delay(pauseBetweenNotes);
+    // stop the tone playing:
+    noTone(7);
   }
 }
