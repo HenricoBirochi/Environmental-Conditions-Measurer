@@ -150,18 +150,16 @@ void loop() {
 
   DateTime now = rtc.now();
 
-  if (temperatureC < minTemp || temperatureC > maxTemp || humid < minHumidity || humid > maxHumidity) {
-    if (currentMillis - writeDelay >= interval) {
+  if (temperatureC < minTemp || temperatureC > maxTemp || humid < minHumidity || humid > maxHumidity && currentMillis - writeDelay >= interval) {
       writeDelay = currentMillis;
       int tempCInt = (int)(temperatureC * 100);
       int humidInt = (int)(humid * 100);
-
+    
       EEPROM.put(currentAddress, now.unixtime());
       EEPROM.put(currentAddress + 4, tempCInt);
       EEPROM.put(currentAddress + 6, humidInt);
-
+    
       getNextAddress();
-    }
   }
 
   const int debounceDelay = 50;
@@ -169,13 +167,11 @@ void loop() {
   unsigned long configStartTime;
   int configEndTime = 2000;
 
-  if (buttonScreenState != lastButtonScreenState && buttonScreenState == HIGH) {
-    if (millis() - lastDebounceTime > debounceDelay) {
+  if (buttonScreenState != lastButtonScreenState && buttonScreenState == HIGH && millis() - lastDebounceTime > debounceDelay) {
       configMode = false;
       lcd.clear();
       currentScreen = (currentScreen + 1) % 3;
       lastDebounceTime = millis();
-    }
   }
   lastButtonScreenState = buttonScreenState;
 
