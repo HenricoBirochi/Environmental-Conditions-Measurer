@@ -52,7 +52,7 @@ void setColor(int red, int green, int blue) {
 
 float fakeLuminosity() {
   int potValue = analogRead(A3);
-  return map(potValue, 0, 1023, 0, 100);
+  return map(potValue, 0, 1023, 100, 0);
 }
 
 int currentScreen;
