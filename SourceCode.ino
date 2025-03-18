@@ -309,39 +309,9 @@ void loop() {
     if (currentMillis - logDelay >= interval) {
       logDelay = currentMillis;
 
-      get_log();
+      print_log_now();
 
-      // DateTime now = rtc.now();  //CHAMADA DE FUNÇÃO
-      // Serial.println(F("------------------------------"));
-      // Serial.print("Data: ");                           //IMPRIME O TEXTO NO MONITOR SERIAL
-      // Serial.print(now.day(), DEC);                     //IMPRIME NO MONITOR SERIAL O DIA
-      // Serial.print('/');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
-      // Serial.print(now.month(), DEC);                   //IMPRIME NO MONITOR SERIAL O MÊS
-      // Serial.print('/');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
-      // Serial.print(now.year(), DEC);                    //IMPRIME NO MONITOR SERIAL O ANO
-      // Serial.print(" / Dia: ");                         //IMPRIME O TEXTO NA SERIAL
-      // Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);  //IMPRIME NO MONITOR SERIAL O DIA
-      // Serial.print(" / Horas: ");                       //IMPRIME O TEXTO NA SERIAL
-      // Serial.print(now.hour(), DEC);                    //IMPRIME NO MONITOR SERIAL A HORA
-      // Serial.print(':');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
-      // Serial.print(now.minute(), DEC);                  //IMPRIME NO MONITOR SERIAL OS MINUTOS
-      // Serial.print(':');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
-      // Serial.print(now.second(), DEC);                  //IMPRIME NO MONITOR SERIAL OS SEGUNDOS
-      // Serial.println();                                 //QUEBRA DE LINHA NA SERIAL
 
-      // Serial.println(F("------ Dados de Sensores ------"));
-      // Serial.print(F("Temperatura: "));
-      // Serial.print(temp);
-      // Serial.println(F(" °C"));
-
-      // Serial.print(F("Umidade: "));
-      // Serial.print(humid);
-      // Serial.println(F(" %"));
-
-      // Serial.print(F("Luminosidade: "));
-      // Serial.print(lumen);
-      // Serial.println(F(" %"));
-      // Serial.println(F("------------------------------"));
     }
   }
 }
@@ -353,7 +323,41 @@ void getNextAddress() {
   }
 }
 
-void get_log() {
+void print_log_now() {
+        DateTime now = rtc.now();  //CHAMADA DE FUNÇÃO
+      Serial.println(F("------------------------------"));
+      Serial.print("Data: ");                           //IMPRIME O TEXTO NO MONITOR SERIAL
+      Serial.print(now.day(), DEC);                     //IMPRIME NO MONITOR SERIAL O DIA
+      Serial.print('/');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
+      Serial.print(now.month(), DEC);                   //IMPRIME NO MONITOR SERIAL O MÊS
+      Serial.print('/');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
+      Serial.print(now.year(), DEC);                    //IMPRIME NO MONITOR SERIAL O ANO
+      Serial.print(" / Dia: ");                         //IMPRIME O TEXTO NA SERIAL
+      Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);  //IMPRIME NO MONITOR SERIAL O DIA
+      Serial.print(" / Horas: ");                       //IMPRIME O TEXTO NA SERIAL
+      Serial.print(now.hour(), DEC);                    //IMPRIME NO MONITOR SERIAL A HORA
+      Serial.print(':');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
+      Serial.print(now.minute(), DEC);                  //IMPRIME NO MONITOR SERIAL OS MINUTOS
+      Serial.print(':');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
+      Serial.print(now.second(), DEC);                  //IMPRIME NO MONITOR SERIAL OS SEGUNDOS
+      Serial.println();                                 //QUEBRA DE LINHA NA SERIAL
+
+      Serial.println(F("------ Dados de Sensores ------"));
+      Serial.print(F("Temperatura: "));
+      Serial.print(temp);
+      Serial.println(F(" °C"));
+
+      Serial.print(F("Umidade: "));
+      Serial.print(humid);
+      Serial.println(F(" %"));
+
+      Serial.print(F("Luminosidade: "));
+      Serial.print(lumen);
+      Serial.println(F(" %"));
+      Serial.println(F("------------------------------"));
+}
+
+void get_full_log_anomalies() {
   Serial.println("Data stored in EEPROM:");
   Serial.println("Timestamp\t\tTemperature\tHumidity");
 
