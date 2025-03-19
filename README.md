@@ -80,6 +80,6 @@ Este projeto possui uma constante chamada IS_REAL_SYSTEM, que pode ser 0, para s
 
 
 ## 🤝 **Créditos e Contribuições**  
-Desenvolvido por **[Edgar Camacho](https://github.com/Edgarcsr), [Henrico Birochi](https://github.com/henricobirochi), [Vítor Braghittoni](https://github.com/VBraghittoni), [Nicolas Birochi](https://github.com/nicholasbirochi), [Vinicius Yamaguti]([https://github.com/VBraghittoni](https://github.com/ViniYama))**.  
+Desenvolvido por **[Edgar Camacho](https://github.com/Edgarcsr), [Henrico Birochi](https://github.com/henricobirochi), [Vítor Braghittoni](https://github.com/VBraghittoni), [Nicolas Birochi](https://github.com/nicholasbirochi), [Vinicius Yamaguti](https://github.com/ViniYama)**.  
 
 Se gostou do projeto, ⭐ deixe um star no repositório!  
