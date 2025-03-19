@@ -1,4 +1,3 @@
-
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include "RTClib.h"
@@ -9,20 +8,22 @@
 // Definir se o código está sendo executado em um sistema real (1) ou no simulador (0)
 #define IS_REAL_SYSTEM 0
 
-#define col 16     // Número de colunas do display
-#define lin 2      // Número de linhas do display
-#define ende 0x27  // Endereço do display
+#define col 16             // Número de colunas do display
+#define lin 2              // Número de linhas do display
+#define ende 0x27          // Endereço do display
 
-#define DHTPIN 7  
+#define DHTPIN 7
 #if IS_REAL_SYSTEM
-    #define DHTTYPE DHT11  // Tipo de sensor DHT para versão real
-    RTC_DS3231 rtc;         // RTC para sistema real
+#define DHTTYPE DHT11      // Tipo de sensor DHT para versão real
+RTC_DS3231 rtc;            // RTC para sistema real
 #else
-    #define DHTTYPE DHT22  // Tipo de sensor DHT para versão Wokwi
-    RTC_DS1307 rtc;        // RTC para simulador Wokwi
+#define DHTTYPE DHT22      // Tipo de sensor DHT para versão Wokwi
+RTC_DS1307 rtc;            // RTC para simulador Wokwi
 #endif
 
-DHT dht(DHTPIN, DHTTYPE);  
+#define SPEAKER_PIN 3      // Pino do Buzzer
+
+DHT dht(DHTPIN, DHTTYPE);  // DHT d
 
 char daysOfTheWeek[7][12] = { "Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado" };
 
@@ -34,7 +35,43 @@ const int bluePin = 11;
 const int buttonScreen = 6;
 const int buttonConfig = 5;
 const int pinLDR = A0;  // Pino Photo-Resistor
-const int melodyPin = 3;
+
+// Parte Sonora:
+int melodyPirate[] = {
+  NOTE_A3, NOTE_C4, NOTE_D4, NOTE_D4, NOTE_D4, NOTE_E4, NOTE_F4, NOTE_F4, NOTE_F4, NOTE_G4, NOTE_E4, NOTE_E4, NOTE_D4, NOTE_C4, NOTE_C4, NOTE_D4,
+  NOTE_A3, NOTE_C4, NOTE_D4, NOTE_D4, NOTE_D4, NOTE_E4, NOTE_F4, NOTE_F4, NOTE_F4, NOTE_G4, NOTE_E4, NOTE_E4, NOTE_D4, NOTE_C4, NOTE_D4,
+  NOTE_A3, NOTE_C4, NOTE_D4, NOTE_D4, NOTE_D4, NOTE_F4, NOTE_G4, NOTE_G4, NOTE_G4, NOTE_A4, NOTE_AS4, NOTE_AS4, NOTE_A4, NOTE_G4, NOTE_A4, NOTE_D4,
+  NOTE_D4, NOTE_E4, NOTE_F4, NOTE_F4, NOTE_G4, NOTE_A4, NOTE_D4, NOTE_D4, NOTE_F4, NOTE_E4, NOTE_E4, NOTE_F4, NOTE_D4, NOTE_E4
+};
+
+float noteDurationsPirate[] = {
+  2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 2, 0.67, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 
+  0.5, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 2, 0.67, 2, 2, 1, 1, 1, 2, 0.67, 2, 2, 1, 1, 2, 2, 0.5
+};
+
+void playMelodyPirate() {
+    for (int thisNote = 0; thisNote < 61; thisNote++) {
+
+    float noteDuration = 150 / noteDurationsPirate[thisNote];
+    tone(SPEAKER_PIN, melodyPirate[thisNote], noteDuration);
+
+    int pauseBetweenNotes = noteDuration * 1.40;
+    delay(pauseBetweenNotes);
+    // stop the tone playing:
+    noTone(SPEAKER_PIN);
+  }
+}
+
+void playErrorSound() {
+  int melodyError[] = { NOTE_G4, NOTE_E4, NOTE_C4 };
+  int durations[] = { 150, 150, 300 }; // Duração das notas
+
+  for (int i = 0; i < 3; i++) {
+    tone(SPEAKER_PIN, melodyError[i], durations[i]);
+    delay(durations[i] * 1.3); // Pequena pausa entre as notas
+    noTone(SPEAKER_PIN);
+  }
+}
 
 void setColor(int red, int green, int blue) {
   analogWrite(redPin, red);
@@ -44,7 +81,7 @@ void setColor(int red, int green, int blue) {
 
 float fakeLuminosity() {
   int potValue = analogRead(A3);
-  return map(potValue, 0, 1023, 100, 0);
+  return map(potValue, 0, 1023, 0, 100);
 }
 
 int currentScreen;
@@ -54,6 +91,7 @@ int buttonConfigState = 0;
 int lastButtonConfigState = 0;
 bool configMode = false;
 int tempUnit = 0;
+int callLog = 0;
 
 // Configuração do intervalo por millis()
 unsigned long writeDelay = 0;
@@ -61,23 +99,17 @@ unsigned long logDelay = 0;
 const long interval = 5000;
 
 // Configurações da EEPROM
-const int maxRecords = 100;
-const int recordSize = 8;  // Tamanho de cada registro em bytes
+const int maxRecords = 60;
+const int recordSize = 10;  // Tamanho de cada registro em bytes
 int startAddress = 0;
 int endAddress = maxRecords * recordSize;
 int currentAddress = 0;
 
 int lastLoggedMinute = -1;
 
-int melodyZelda[] = {
-  NOTE_G4, NOTE_FS4, NOTE_DS4, NOTE_A3, NOTE_GS3, NOTE_E4, NOTE_GS4, NOTE_C5
-};
-
-int noteDurationsZelda[] = {
-  8, 8, 8, 8, 8, 8, 8, 8
-};
-
 void setup() {
+  playMelodyPirate();
+  
   currentScreen = 0;
   Serial.begin(9600);
   Serial.println("Sistema Inicializado!");
@@ -87,7 +119,6 @@ void setup() {
   pinMode(bluePin, OUTPUT);
   pinMode(buttonScreen, INPUT_PULLUP);
   pinMode(buttonConfig, INPUT_PULLUP);
-  pinMode(melodyPin, OUTPUT);
   lastButtonScreenState = digitalRead(buttonScreen);
   lastButtonConfigState = digitalRead(buttonConfig);
 
@@ -104,6 +135,7 @@ void setup() {
   lcd.backlight();
   lcd.clear();
   shipGoing();
+  lcd.clear();
   degreesSymbol();
   EEPROM.begin();
 }
@@ -136,12 +168,12 @@ void loop() {
 
   float humid = dht.readHumidity();
   float luminosity = analogRead(pinLDR);
-  
-  #if IS_REAL_SYSTEM
-    float lumen = map(luminosity, 444, 969, 0, 100);
-  #else
-    float lumen = fakeLuminosity();
-  #endif
+
+#if IS_REAL_SYSTEM
+  float lumen = map(luminosity, 700, 900, 100, 0);
+#else
+  float lumen = fakeLuminosity();
+#endif
 
   // Definir a faixa de temperatura
   float minTemp = 15.0;
@@ -152,21 +184,21 @@ void loop() {
 
   DateTime now = rtc.now();
 
-  if (temperatureC < minTemp || temperatureC > maxTemp || humid < minHumidity || humid > maxHumidity) {
-     if (currentMillis - writeDelay >= interval) {
-       writeDelay = currentMillis;
-       int tempCInt = (int)(temperatureC * 100);
-       int humidInt = (int)(humid * 100);
- 
-       EEPROM.put(currentAddress, now.unixtime());
-       EEPROM.put(currentAddress + 4, tempCInt);
-       EEPROM.put(currentAddress + 6, humidInt);
+  if (temperatureC < minTemp || temperatureC > maxTemp || humid < minHumidity || humid > maxHumidity || lumen > maxLuminosity) {
+    if (currentMillis - writeDelay >= interval) {
+      writeDelay = currentMillis;
+      int tempCInt = (int)(temperatureC * 100);
+      int humidInt = (int)(humid * 100);
+      int lumenInt = (int)(lumen * 100);
 
-        playMelodyZelda();
- 
-       getNextAddress();
-     }
-   }
+      EEPROM.put(currentAddress, now.unixtime());
+      EEPROM.put(currentAddress + 4, tempCInt);
+      EEPROM.put(currentAddress + 6, humidInt);
+      EEPROM.put(currentAddress + 8, lumenInt);
+      getNextAddress();
+    }
+    playErrorSound();
+  }
 
   const int debounceDelay = 50;
   unsigned long lastDebounceTime = 0;
@@ -174,13 +206,13 @@ void loop() {
   int configEndTime = 2000;
 
   if (buttonScreenState != lastButtonScreenState && buttonScreenState == HIGH) {
-     if (millis() - lastDebounceTime > debounceDelay) {
-       configMode = false;
-       lcd.clear();
-       currentScreen = (currentScreen + 1) % 3;
-       lastDebounceTime = millis();
-     }
-   }
+    if (millis() - lastDebounceTime > debounceDelay) {
+      configMode = false;
+      lcd.clear();
+      currentScreen = (currentScreen + 1) % 4;
+      lastDebounceTime = millis();
+    }
+  }
   lastButtonScreenState = buttonScreenState;
 
   if (buttonConfigState != lastButtonConfigState && buttonConfigState == HIGH) {
@@ -196,10 +228,14 @@ void loop() {
           case 0:
             tempUnit = (tempUnit > 1) ? 0 : tempUnit + 1;
             break;
+          case 3:
+            callLog = (callLog > 0) ? 0 : callLog + 1;
+            break;
         }
       }
     }
   }
+
   lastButtonConfigState = buttonConfigState;
 
 
@@ -219,6 +255,26 @@ void loop() {
             break;
           case 2:
             lcd.print(">Kelvin    ");
+            break;
+        }
+        break;
+      case 3:
+        lcd.setCursor(0, 0);
+        lcd.print("Ajustes:");
+        lcd.setCursor(0, 1);
+        switch (callLog) {
+          case 0:
+            lcd.print(">Printar Log");
+            break;
+          case 1:
+            lcd.print(">Chamar EEPROM");
+            if (millis() - configStartTime >= configEndTime) {
+              lcd.setCursor(0, 1);
+              lcd.print("Puxando Dados...");
+              get_log();           // Chama a função get_log() após 5 segundos
+              configMode = false;  // Sai do modo de configuração
+              lcd.clear();         // Limpa a tela
+            }
             break;
         }
         break;
@@ -308,46 +364,13 @@ void loop() {
           setColor(255, 255, yellow);  // Transição de branco para amarelo
         }
         break;
+      case 3:
+        IconMenu();
+        break;
     }
 
     if (currentMillis - logDelay >= interval) {
       logDelay = currentMillis;
-
-          get_log();
- 
-       // DateTime now = rtc.now();  //CHAMADA DE FUNÇÃO
-       // Serial.println(F("------------------------------"));
-       // Serial.print("Data: ");                           //IMPRIME O TEXTO NO MONITOR SERIAL
-       // Serial.print(now.day(), DEC);                     //IMPRIME NO MONITOR SERIAL O DIA
-       // Serial.print('/');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
-       // Serial.print(now.month(), DEC);                   //IMPRIME NO MONITOR SERIAL O MÊS
-       // Serial.print('/');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
-       // Serial.print(now.year(), DEC);                    //IMPRIME NO MONITOR SERIAL O ANO
-       // Serial.print(" / Dia: ");                         //IMPRIME O TEXTO NA SERIAL
-       // Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);  //IMPRIME NO MONITOR SERIAL O DIA
-       // Serial.print(" / Horas: ");                       //IMPRIME O TEXTO NA SERIAL
-       // Serial.print(now.hour(), DEC);                    //IMPRIME NO MONITOR SERIAL A HORA
-       // Serial.print(':');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
-       // Serial.print(now.minute(), DEC);                  //IMPRIME NO MONITOR SERIAL OS MINUTOS
-       // Serial.print(':');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
-       // Serial.print(now.second(), DEC);                  //IMPRIME NO MONITOR SERIAL OS SEGUNDOS
-       // Serial.println();                                 //QUEBRA DE LINHA NA SERIAL
- 
-       // Serial.println(F("------ Dados de Sensores ------"));
-       // Serial.print(F("Temperatura: "));
-       // Serial.print(temp);
-       // Serial.println(F(" °C"));
- 
-       // Serial.print(F("Umidade: "));
-       // Serial.print(humid);
-       // Serial.println(F(" %"));
- 
-       // Serial.print(F("Luminosidade: "));
-       // Serial.print(lumen);
-       // Serial.println(F(" %"));
-       // Serial.println(F("------------------------------"));
-
-
     }
   }
 }
@@ -359,23 +382,25 @@ void getNextAddress() {
   }
 }
 
-
 void get_log() {
   Serial.println("Data stored in EEPROM:");
-  Serial.println("Timestamp\t\tTemperature\tHumidity");
+  Serial.println("Timestamp\t\tTemperature\tHumidity\tLuminosity");
 
   for (int address = startAddress; address < endAddress; address += recordSize) {
     long timeStamp;
-    int tempInt, humiInt;
+    int tempInt, humiInt, lumenInt;
 
     // Ler dados da EEPROM
     EEPROM.get(address, timeStamp);
     EEPROM.get(address + 4, tempInt);
     EEPROM.get(address + 6, humiInt);
+    EEPROM.get(address + 8, lumenInt);
 
     // Converter valores
     float temperature = tempInt / 100.0;
     float humidity = humiInt / 100.0;
+    float luminosity = lumenInt / 100.0;
+
 
     // Verificar se os dados são válidos antes de imprimir
     if (timeStamp != 0xFFFFFFFF) {  // 0xFFFFFFFF é o valor padrão de uma EEPROM não inicializada
@@ -386,22 +411,57 @@ void get_log() {
       Serial.print(temperature);
       Serial.print(" C\t\t");
       Serial.print(humidity);
+      Serial.print(" %\t\t");
+      Serial.print(luminosity);
       Serial.println(" %");
     }
   }
 }
 
-void playMelodyZelda() {
-    for (int thisNote = 0; thisNote < 8; thisNote++) {
+void TextMenu(){
+          lcd.setCursor(0, 0);
+        lcd.print("- Mar de Vinho -");
+        lcd.setCursor(0, 1);
+        lcd.print("    [MENU]");
+}
 
-    int noteDuration = 1000 / noteDurationsZelda[thisNote];
-    tone(melodyPin, melodyZelda[thisNote], noteDuration);
+void IconMenu() {
 
-    int pauseBetweenNotes = noteDuration * 1.30;
-    delay(pauseBetweenNotes);
-    // stop the tone playing:
-    noTone(melodyPin);
-  }
+  byte name1x15[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+  byte name0x6[] = { 0x00, 0x00, 0x00, 0x01, 0x03, 0x02, 0x02, 0x01 };
+  byte name0x7[] = { 0x03, 0x01, 0x00, 0x1B, 0x1D, 0x1C, 0x0C, 0x19 };
+  byte name0x8[] = { 0x00, 0x10, 0x00, 0x1B, 0x1D, 0x1D, 0x0C, 0x19 };
+  byte name0x9[] = { 0x00, 0x00, 0x00, 0x10, 0x18, 0x18, 0x18, 0x10 };
+  byte name1x7[] = { 0x00, 0x17, 0x13, 0x0E, 0x00, 0x00, 0x02, 0x01 };
+  byte name1x8[] = { 0x00, 0x07, 0x03, 0x0E, 0x00, 0x1C, 0x0C, 0x18 };
+
+  lcd.createChar(0, name1x15);
+  lcd.setCursor(15, 1);
+  lcd.write(0);
+
+  lcd.createChar(1, name0x6);
+  lcd.setCursor(6, 0);
+  lcd.write(1);
+
+  lcd.createChar(2, name0x7);
+  lcd.setCursor(7, 0);
+  lcd.write(2);
+
+  lcd.createChar(3, name0x8);
+  lcd.setCursor(8, 0);
+  lcd.write(3);
+
+  lcd.createChar(4, name0x9);
+  lcd.setCursor(9, 0);
+  lcd.write(4);
+
+  lcd.createChar(5, name1x7);
+  lcd.setCursor(7, 1);
+  lcd.write(5);
+
+  lcd.createChar(6, name1x8);
+  lcd.setCursor(8, 1);
+  lcd.write(6);
 }
 
 void degreesSymbol(){
@@ -410,21 +470,16 @@ void degreesSymbol(){
 }
 void shipGoing(){
   byte i = 36;
-  shipStarting();
+  ship();
   lcd.setCursor(27, 1);
   lcd.print("Wine Sea");
-  while(i <= 55){ 
+  while(i <= 64){ 
     delay(250);
-    if(i <= 52){
-      lcd.scrollDisplayRight();
-    }
-    else{
-      shipEnding(i);
-    }
+    lcd.scrollDisplayRight();
     i++;
   }
 }
-void shipStarting(){
+void ship(){
   byte name0x0[] = { B01111, B11001, B11001, B01100, B00100, B00100, B00100, B01100 };
   byte name0x1[] = { B11111, B00100, B00100, B10010, B10010, B10010, B10010, B10010 };
   byte name0x2[] = { B11110, B10010, B10011, B01001, B01001, B01001, B01001, B01001 };
@@ -464,47 +519,5 @@ void shipStarting(){
   
   lcd.createChar(7, name1x3);
   lcd.setCursor(39, 1);
-  lcd.write(byte(7));
-}
-void shipEnding(byte n){  
-  byte name0x0[] = { B01111, B11001, B11001, B01100, B00100, B00100, B00100, B01100 };
-  byte name0x1[] = { B11111, B00100, B00100, B10010, B10010, B10010, B10010, B10010 };
-  byte name0x2[] = { B11110, B10010, B10011, B01001, B01001, B01001, B01001, B01001 };
-  byte name0x3[] = { B00000, B00000, B00000, B00000, B00000, B00110, B00011, B00011 };
-  byte name1x0[] = { B11001, B11001, B00111, B00000, B10000, B11111, B11111, B01111 };
-  byte name1x1[] = { B00100, B00100, B11111, B01010, B01010, B01010, B11111, B11111 };
-  byte name1x2[] = { B10011, B10010, B11110, B00000, B00011, B11111, B11111, B11111 };
-  byte name1x3[] = { B00011, B00111, B01111, B11110, B11110, B11100, B11000, B10000 };
-
-  lcd.createChar(0, name0x0);
-  lcd.setCursor(n, 0);
-  lcd.write(byte(0));
-  
-  lcd.createChar(1, name0x1);
-  lcd.setCursor(n, 0);
-  lcd.write(byte(1));
-  
-  lcd.createChar(2, name0x2);
-  lcd.setCursor(n, 0);
-  lcd.write(byte(2));
-  
-  lcd.createChar(3, name0x3);
-  lcd.setCursor(n, 0);
-  lcd.write(byte(3));
-  
-  lcd.createChar(4, name1x0);
-  lcd.setCursor(n, 1);
-  lcd.write(byte(4));
-  
-  lcd.createChar(5, name1x1);
-  lcd.setCursor(n, 1);
-  lcd.write(byte(5));
-  
-  lcd.createChar(6, name1x2);
-  lcd.setCursor(n, 1);
-  lcd.write(byte(6));
-  
-  lcd.createChar(7, name1x3);
-  lcd.setCursor(n, 1);
   lcd.write(byte(7));
 }
