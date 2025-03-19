@@ -49,19 +49,6 @@ float noteDurationsPirate[] = {
   0.5, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 2, 0.67, 2, 2, 1, 1, 1, 2, 0.67, 2, 2, 1, 1, 2, 2, 0.5
 };
 
-void playMelodyPirate() {
-    for (int thisNote = 0; thisNote < 61; thisNote++) {
-
-    float noteDuration = 150 / noteDurationsPirate[thisNote];
-    tone(SPEAKER_PIN, melodyPirate[thisNote], noteDuration);
-
-    int pauseBetweenNotes = noteDuration * 1.40;
-    delay(pauseBetweenNotes);
-    // stop the tone playing:
-    noTone(SPEAKER_PIN);
-  }
-}
-
  byte degreesSymbol[8] = {
      0b11100,
      0b10100,
@@ -110,9 +97,7 @@ int currentAddress = 0;
 
 int lastLoggedMinute = -1;
 
-void setup() {
-  playMelodyPirate();
-  
+void setup() {  
   currentScreen = 0;
   Serial.begin(9600);
   Serial.println("Sistema Inicializado!");
@@ -137,7 +122,7 @@ void setup() {
   lcd.init();
   lcd.backlight();
   lcd.clear();
-  shipGoing();
+  playMelodyPirateAndShipGoing();
   lcd.clear();
   EEPROM.begin();
 }
@@ -467,17 +452,23 @@ void IconMenu() {
   lcd.write(6);
 }
 
-void shipGoing(){
-  byte i = 36;
+void playMelodyPirateAndShipGoing() {
   ship();
   lcd.setCursor(27, 1);
   lcd.print("Wine Sea");
-  while(i <= 64){ 
-    delay(250);
+  for (int thisNote = 0; thisNote < 61; thisNote++) {
     lcd.scrollDisplayRight();
-    i++;
+
+    float noteDuration = 150 / noteDurationsPirate[thisNote];
+    tone(SPEAKER_PIN, melodyPirate[thisNote], noteDuration);
+    
+    int pauseBetweenNotes = noteDuration * 1.40;
+    delay(pauseBetweenNotes);
+
+    noTone(SPEAKER_PIN);
   }
 }
+
 void ship(){
   byte name0x0[] = { B01111, B11001, B11001, B01100, B00100, B00100, B00100, B01100 };
   byte name0x1[] = { B11111, B00100, B00100, B10010, B10010, B10010, B10010, B10010 };
