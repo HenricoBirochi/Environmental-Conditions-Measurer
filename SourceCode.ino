@@ -3,25 +3,27 @@
 #include "RTClib.h"
 #include <DHT.h>
 #include <EEPROM.h>
+#include "pitches.h"
 
 // Definir se o código está sendo executado em um sistema real (1) ou no simulador (0)
 #define IS_REAL_SYSTEM 0
 
-#define col 16     // Número de colunas do display
-#define lin 2      // Número de linhas do display
-#define ende 0x27  // Endereço do display
+#define col 16             // Número de colunas do display
+#define lin 2              // Número de linhas do display
+#define ende 0x27          // Endereço do display
 
 #define DHTPIN 7
 #if IS_REAL_SYSTEM
-#define DHTTYPE DHT11  // Tipo de sensor DHT para versão real
-RTC_DS3231 rtc;        // RTC para sistema real
+#define DHTTYPE DHT11      // Tipo de sensor DHT para versão real
+RTC_DS3231 rtc;            // RTC para sistema real
 #else
-#define DHTTYPE DHT22  // Tipo de sensor DHT para versão Wokwi
-RTC_DS1307 rtc;  // RTC para simulador Wokwi
+#define DHTTYPE DHT22      // Tipo de sensor DHT para versão Wokwi
+RTC_DS1307 rtc;            // RTC para simulador Wokwi
 #endif
 
-DHT dht(DHTPIN, DHTTYPE);  // DHT d
+#define SPEAKER_PIN 3      // Pino do Buzzer
 
+DHT dht(DHTPIN, DHTTYPE);  // DHT d
 
 char daysOfTheWeek[7][12] = { "Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado" };
   
@@ -44,6 +46,43 @@ const int bluePin = 11;
 const int buttonScreen = 6;
 const int buttonConfig = 5;
 const int pinLDR = A0;  // Pino Photo-Resistor
+
+// Parte Sonora:
+int melodyPirate[] = {
+  NOTE_A3, NOTE_C4, NOTE_D4, NOTE_D4, NOTE_D4, NOTE_E4, NOTE_F4, NOTE_F4, NOTE_F4, NOTE_G4, NOTE_E4, NOTE_E4, NOTE_D4, NOTE_C4, NOTE_C4, NOTE_D4,
+  NOTE_A3, NOTE_C4, NOTE_D4, NOTE_D4, NOTE_D4, NOTE_E4, NOTE_F4, NOTE_F4, NOTE_F4, NOTE_G4, NOTE_E4, NOTE_E4, NOTE_D4, NOTE_C4, NOTE_D4,
+  NOTE_A3, NOTE_C4, NOTE_D4, NOTE_D4, NOTE_D4, NOTE_F4, NOTE_G4, NOTE_G4, NOTE_G4, NOTE_A4, NOTE_AS4, NOTE_AS4, NOTE_A4, NOTE_G4, NOTE_A4, NOTE_D4,
+  NOTE_D4, NOTE_E4, NOTE_F4, NOTE_F4, NOTE_G4, NOTE_A4, NOTE_D4, NOTE_D4, NOTE_F4, NOTE_E4, NOTE_E4, NOTE_F4, NOTE_D4, NOTE_E4
+};
+
+float noteDurationsPirate[] = {
+  2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 2, 0.67, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 
+  0.5, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 2, 0.67, 2, 2, 1, 1, 1, 2, 0.67, 2, 2, 1, 1, 2, 2, 0.5
+};
+
+void playMelodyPirate() {
+    for (int thisNote = 0; thisNote < 61; thisNote++) {
+
+    float noteDuration = 150 / noteDurationsPirate[thisNote];
+    tone(SPEAKER_PIN, melodyPirate[thisNote], noteDuration);
+
+    int pauseBetweenNotes = noteDuration * 1.40;
+    delay(pauseBetweenNotes);
+    // stop the tone playing:
+    noTone(SPEAKER_PIN);
+  }
+}
+
+void playErrorSound() {
+  int melodyError[] = { NOTE_G4, NOTE_E4, NOTE_C4 };
+  int durations[] = { 150, 150, 300 }; // Duração das notas
+
+  for (int i = 0; i < 3; i++) {
+    tone(SPEAKER_PIN, melodyError[i], durations[i]);
+    delay(durations[i] * 1.3); // Pequena pausa entre as notas
+    noTone(SPEAKER_PIN);
+  }
+}
 
 void setColor(int red, int green, int blue) {
   analogWrite(redPin, red);
@@ -80,6 +119,8 @@ int currentAddress = 0;
 int lastLoggedMinute = -1;
 
 void setup() {
+  playMelodyPirate();
+  
   currentScreen = 0;
   Serial.begin(9600);
   Serial.println("Sistema Inicializado!");
@@ -165,6 +206,7 @@ void loop() {
       EEPROM.put(currentAddress + 8, lumenInt);
       getNextAddress();
     }
+    playErrorSound();
   }
 
   const int debounceDelay = 50;
