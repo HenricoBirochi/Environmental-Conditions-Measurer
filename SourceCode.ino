@@ -5,7 +5,7 @@
 #include <EEPROM.h>
 
 // Definir se o código está sendo executado em um sistema real (1) ou no simulador (0)
-#define IS_REAL_SYSTEM 1
+#define IS_REAL_SYSTEM 0
 
 #define col 16     // Número de colunas do display
 #define lin 2      // Número de linhas do display
@@ -24,17 +24,17 @@ DHT dht(DHTPIN, DHTTYPE);  // DHT d
 
 
 char daysOfTheWeek[7][12] = { "Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado" };
-
-byte degreesSymbol[8] = {
-  0b11100,
-  0b10100,
-  0b11100,
-  0b00000,
-  0b00000,
-  0b00000,
-  0b00000,
-  0b00000
-};
+  
+  byte degreesSymbol[8] = {
+    0b11100,
+    0b10100,
+    0b11100,
+    0b00000,
+    0b00000,
+    0b00000,
+    0b00000,
+    0b00000
+  };
 
 LiquidCrystal_I2C lcd(ende, col, lin);
 
@@ -71,8 +71,8 @@ unsigned long logDelay = 0;
 const long interval = 5000;
 
 // Configurações da EEPROM
-const int maxRecords = 100;
-const int recordSize = 8;  // Tamanho de cada registro em bytes
+const int maxRecords = 60;
+const int recordSize = 10;  // Tamanho de cada registro em bytes
 int startAddress = 0;
 int endAddress = maxRecords * recordSize;
 int currentAddress = 0;
@@ -152,16 +152,19 @@ void loop() {
 
   DateTime now = rtc.now();
 
-  if (temperatureC < minTemp || temperatureC > maxTemp || humid < minHumidity || humid > maxHumidity && currentMillis - writeDelay >= interval) {
-    writeDelay = currentMillis;
-    int tempCInt = (int)(temperatureC * 100);
-    int humidInt = (int)(humid * 100);
+  if (temperatureC < minTemp || temperatureC > maxTemp || humid < minHumidity || humid > maxHumidity || lumen > maxLuminosity) {
+    if (currentMillis - writeDelay >= interval) {
+      writeDelay = currentMillis;
+      int tempCInt = (int)(temperatureC * 100);
+      int humidInt = (int)(humid * 100);
+      int lumenInt = (int)(lumen * 100);
 
-    EEPROM.put(currentAddress, now.unixtime());
-    EEPROM.put(currentAddress + 4, tempCInt);
-    EEPROM.put(currentAddress + 6, humidInt);
-
-    getNextAddress();
+      EEPROM.put(currentAddress, now.unixtime());
+      EEPROM.put(currentAddress + 4, tempCInt);
+      EEPROM.put(currentAddress + 6, humidInt);
+      EEPROM.put(currentAddress + 8, lumenInt);
+      getNextAddress();
+    }
   }
 
   const int debounceDelay = 50;
@@ -254,6 +257,7 @@ void loop() {
   } else {
     switch (currentScreen) {
       case 0:
+        lcd.createChar(5, degreesSymbol);
         lcd.setCursor(0, 0);
         lcd.print("Temperatura");
         lcd.setCursor(0, 1);
@@ -329,44 +333,12 @@ void loop() {
         }
         break;
       case 3:
-        lcd.setCursor(0, 0);
-        lcd.print("Mar de Vinhos");
+        IconMenu();
         break;
     }
 
     if (currentMillis - logDelay >= interval) {
       logDelay = currentMillis;
-      // DateTime now = rtc.now();  //CHAMADA DE FUNÇÃO
-      // Serial.println(F("------------------------------"));
-      // Serial.print("Data: ");                           //IMPRIME O TEXTO NO MONITOR SERIAL
-      // Serial.print(now.day(), DEC);                     //IMPRIME NO MONITOR SERIAL O DIA
-      // Serial.print('/');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
-      // Serial.print(now.month(), DEC);                   //IMPRIME NO MONITOR SERIAL O MÊS
-      // Serial.print('/');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
-      // Serial.print(now.year(), DEC);                    //IMPRIME NO MONITOR SERIAL O ANO
-      // Serial.print(" / Dia: ");                         //IMPRIME O TEXTO NA SERIAL
-      // Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);  //IMPRIME NO MONITOR SERIAL O DIA
-      // Serial.print(" / Horas: ");                       //IMPRIME O TEXTO NA SERIAL
-      // Serial.print(now.hour(), DEC);                    //IMPRIME NO MONITOR SERIAL A HORA
-      // Serial.print(':');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
-      // Serial.print(now.minute(), DEC);                  //IMPRIME NO MONITOR SERIAL OS MINUTOS
-      // Serial.print(':');                                //IMPRIME O CARACTERE NO MONITOR SERIAL
-      // Serial.print(now.second(), DEC);                  //IMPRIME NO MONITOR SERIAL OS SEGUNDOS
-      // Serial.println();                                 //QUEBRA DE LINHA NA SERIAL
-
-      // Serial.println(F("------ Dados de Sensores ------"));
-      // Serial.print(F("Temperatura: "));
-      // Serial.print(temp);
-      // Serial.println(F(" °C"));
-
-      // Serial.print(F("Umidade: "));
-      // Serial.print(humid);
-      // Serial.println(F(" %"));
-
-      // Serial.print(F("Luminosidade: "));
-      // Serial.print(lumen);
-      // Serial.println(F(" %"));
-      // Serial.println(F("------------------------------"));
     }
   }
 }
@@ -380,20 +352,23 @@ void getNextAddress() {
 
 void get_log() {
   Serial.println("Data stored in EEPROM:");
-  Serial.println("Timestamp\t\tTemperature\tHumidity");
+  Serial.println("Timestamp\t\tTemperature\tHumidity\tLuminosity");
 
   for (int address = startAddress; address < endAddress; address += recordSize) {
     long timeStamp;
-    int tempInt, humiInt;
+    int tempInt, humiInt, lumenInt;
 
     // Ler dados da EEPROM
     EEPROM.get(address, timeStamp);
     EEPROM.get(address + 4, tempInt);
     EEPROM.get(address + 6, humiInt);
+    EEPROM.get(address + 8, lumenInt);
 
     // Converter valores
     float temperature = tempInt / 100.0;
     float humidity = humiInt / 100.0;
+    float luminosity = lumenInt / 100.0;
+
 
     // Verificar se os dados são válidos antes de imprimir
     if (timeStamp != 0xFFFFFFFF) {  // 0xFFFFFFFF é o valor padrão de uma EEPROM não inicializada
@@ -404,7 +379,55 @@ void get_log() {
       Serial.print(temperature);
       Serial.print(" C\t\t");
       Serial.print(humidity);
+      Serial.print(" %\t\t");
+      Serial.print(luminosity);
       Serial.println(" %");
     }
   }
+}
+
+void TextMenu(){
+          lcd.setCursor(0, 0);
+        lcd.print("- Mar de Vinho -");
+        lcd.setCursor(0, 1);
+        lcd.print("    [MENU]");
+}
+
+void IconMenu() {
+
+  byte name1x15[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+  byte name0x6[] = { 0x00, 0x00, 0x00, 0x01, 0x03, 0x02, 0x02, 0x01 };
+  byte name0x7[] = { 0x03, 0x01, 0x00, 0x1B, 0x1D, 0x1C, 0x0C, 0x19 };
+  byte name0x8[] = { 0x00, 0x10, 0x00, 0x1B, 0x1D, 0x1D, 0x0C, 0x19 };
+  byte name0x9[] = { 0x00, 0x00, 0x00, 0x10, 0x18, 0x18, 0x18, 0x10 };
+  byte name1x7[] = { 0x00, 0x17, 0x13, 0x0E, 0x00, 0x00, 0x02, 0x01 };
+  byte name1x8[] = { 0x00, 0x07, 0x03, 0x0E, 0x00, 0x1C, 0x0C, 0x18 };
+
+  lcd.createChar(0, name1x15);
+  lcd.setCursor(15, 1);
+  lcd.write(0);
+
+  lcd.createChar(1, name0x6);
+  lcd.setCursor(6, 0);
+  lcd.write(1);
+
+  lcd.createChar(2, name0x7);
+  lcd.setCursor(7, 0);
+  lcd.write(2);
+
+  lcd.createChar(3, name0x8);
+  lcd.setCursor(8, 0);
+  lcd.write(3);
+
+  lcd.createChar(4, name0x9);
+  lcd.setCursor(9, 0);
+  lcd.write(4);
+
+  lcd.createChar(5, name1x7);
+  lcd.setCursor(7, 1);
+  lcd.write(5);
+
+  lcd.createChar(6, name1x8);
+  lcd.setCursor(8, 1);
+  lcd.write(6);
 }
