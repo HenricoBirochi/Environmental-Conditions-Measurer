@@ -60,7 +60,7 @@ Caso alguma das medições saia desses intervalos, um alerta será acionado por 
 ## 💾 **Código-Fonte**  
 Este projeto possui uma constante chamada IS_REAL_SYSTEM, que pode ser 0, para simulações no Wokwi, e 1 para ser aplicada em ambiente real. Tal constante é usada sempre que há divergências entre tais implementações.
 
-🔗 **Simulação Wokwi:** [Acesse aqui](https://wokwi.com/projects/425625739198945281)  
+🔗 **Simulação Wokwi:** [Acesse aqui](https://wokwi.com/projects/425877587110824961)  
 
 ---
 
