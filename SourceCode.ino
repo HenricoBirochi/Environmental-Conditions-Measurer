@@ -6,7 +6,7 @@
 #include "pitches.h"
 
 // Definir se o código está sendo executado em um sistema real (1) ou no simulador (0)
-#define IS_REAL_SYSTEM 1
+#define IS_REAL_SYSTEM 0
 
 #define col 16             // Número de colunas do display
 #define lin 2              // Número de linhas do display
@@ -48,6 +48,19 @@ float noteDurationsPirate[] = {
   2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 2, 0.67, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 
   0.5, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 2, 0.67, 2, 2, 1, 1, 1, 2, 0.67, 2, 2, 1, 1, 2, 2, 0.5
 };
+
+void playMelodyPirate() {
+    for (int thisNote = 0; thisNote < 61; thisNote++) {
+
+    float noteDuration = 150 / noteDurationsPirate[thisNote];
+    tone(SPEAKER_PIN, melodyPirate[thisNote], noteDuration);
+
+    int pauseBetweenNotes = noteDuration * 1.40;
+    delay(pauseBetweenNotes);
+    // stop the tone playing:
+    noTone(SPEAKER_PIN);
+  }
+}
 
  byte degreesSymbol[8] = {
      0b11100,
@@ -97,7 +110,9 @@ int currentAddress = 0;
 
 int lastLoggedMinute = -1;
 
-void setup() {  
+void setup() {
+  playMelodyPirate();
+  
   currentScreen = 0;
   Serial.begin(9600);
   Serial.println("Sistema Inicializado!");
@@ -122,7 +137,7 @@ void setup() {
   lcd.init();
   lcd.backlight();
   lcd.clear();
-  playMelodyPirateAndShipGoing();
+  shipGoing();
   lcd.clear();
   EEPROM.begin();
 }
@@ -157,7 +172,7 @@ void loop() {
   float luminosity = analogRead(pinLDR);
 
 #if IS_REAL_SYSTEM
-  float lumen = map(luminosity, 0, 512, 0, 100);
+  float lumen = map(luminosity, 444, 969, 100, 0);
 #else
   float lumen = fakeLuminosity();
 #endif
@@ -252,6 +267,13 @@ void loop() {
         switch (callLog) {
           case 0:
             lcd.print(">Printar Log");
+            if (millis() - configStartTime >= configEndTime) {
+              lcd.setCursor(0, 1);
+              lcd.print("Puxando Dados...");
+              get_current(temperatureC, humid, luminosity);           // Chama a função get_current() após 5 segundos
+              configMode = false;  // Sai do modo de configuração
+              lcd.clear();         // Limpa a tela
+            }
             break;
           case 1:
             lcd.print(">Chamar EEPROM");
@@ -370,6 +392,27 @@ void getNextAddress() {
   }
 }
 
+void get_current(float temperatureC, float humid, float luminosity) {
+  Serial.println("Current measures");
+  Serial.println("Timestamp\t\tTemperature\tHumidity\tLuminosity");
+
+  DateTime now = rtc.now();
+  
+   // Verificar se os dados são válidos antes de imprimir
+   if (now.unixtime() != 0xFFFFFFFF) {  // 0xFFFFFFFF é o valor padrão de uma EEPROM não inicializada
+   DateTime dt = DateTime(now.unixtime());
+     Serial.print(dt.timestamp(DateTime::TIMESTAMP_FULL));
+     Serial.print("\t");
+     Serial.print(temperatureC);
+     Serial.print(" C\t\t");
+     Serial.print(humid);
+     Serial.print(" %\t\t");
+     Serial.print(luminosity);
+     Serial.println(" %");
+   }
+
+}
+
 void get_log() {
   Serial.println("Data stored in EEPROM:");
   Serial.println("Timestamp\t\tTemperature\tHumidity\tLuminosity");
@@ -452,23 +495,17 @@ void IconMenu() {
   lcd.write(6);
 }
 
-void playMelodyPirateAndShipGoing() {
+void shipGoing(){
+  byte i = 36;
   ship();
   lcd.setCursor(27, 1);
   lcd.print("Wine Sea");
-  for (int thisNote = 0; thisNote < 61; thisNote++) {
+  while(i <= 64){ 
+    delay(250);
     lcd.scrollDisplayRight();
-
-    float noteDuration = 250 / noteDurationsPirate[thisNote];
-    tone(SPEAKER_PIN, melodyPirate[thisNote], noteDuration);
-    
-    int pauseBetweenNotes = noteDuration * 1.40;
-    delay(pauseBetweenNotes);
-
-    noTone(SPEAKER_PIN);
+    i++;
   }
 }
-
 void ship(){
   byte name0x0[] = { B01111, B11001, B11001, B01100, B00100, B00100, B00100, B01100 };
   byte name0x1[] = { B11111, B00100, B00100, B10010, B10010, B10010, B10010, B10010 };
