@@ -26,17 +26,6 @@ RTC_DS1307 rtc;            // RTC para simulador Wokwi
 DHT dht(DHTPIN, DHTTYPE);  // DHT d
 
 char daysOfTheWeek[7][12] = { "Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado" };
-  
-  byte degreesSymbol[8] = {
-    0b11100,
-    0b10100,
-    0b11100,
-    0b00000,
-    0b00000,
-    0b00000,
-    0b00000,
-    0b00000
-  };
 
 LiquidCrystal_I2C lcd(ende, col, lin);
 
@@ -73,16 +62,16 @@ void playMelodyPirate() {
   }
 }
 
-void playErrorSound() {
-  int melodyError[] = { NOTE_G4, NOTE_E4, NOTE_C4 };
-  int durations[] = { 150, 150, 300 }; // Duração das notas
-
-  for (int i = 0; i < 3; i++) {
-    tone(SPEAKER_PIN, melodyError[i], durations[i]);
-    delay(durations[i] * 1.3); // Pequena pausa entre as notas
-    noTone(SPEAKER_PIN);
-  }
-}
+ byte degreesSymbol[8] = {
+     0b11100,
+     0b10100,
+     0b11100,
+     0b00000,
+     0b00000,
+     0b00000,
+     0b00000,
+     0b00000
+   };
 
 void setColor(int red, int green, int blue) {
   analogWrite(redPin, red);
@@ -103,6 +92,9 @@ int lastButtonConfigState = 0;
 bool configMode = false;
 int tempUnit = 0;
 int callLog = 0;
+unsigned long screenButtonPressTime = 0;
+const int holdTime = 3000; // Tempo necessário para ativar a tela 3 (3 segundos)
+
 
 // Configuração do intervalo por millis()
 unsigned long writeDelay = 0;
@@ -145,7 +137,8 @@ void setup() {
   lcd.init();
   lcd.backlight();
   lcd.clear();
-  lcd.createChar(5, degreesSymbol);
+  shipGoing();
+  lcd.clear();
   EEPROM.begin();
 }
 
@@ -179,7 +172,7 @@ void loop() {
   float luminosity = analogRead(pinLDR);
 
 #if IS_REAL_SYSTEM
-  float lumen = map(luminosity, 700, 900, 100, 0);
+  float lumen = map(luminosity, 444, 969, 100, 0);
 #else
   float lumen = fakeLuminosity();
 #endif
@@ -206,7 +199,7 @@ void loop() {
       EEPROM.put(currentAddress + 8, lumenInt);
       getNextAddress();
     }
-    playErrorSound();
+    tone(SPEAKER_PIN, 1000, 500);
   }
 
   const int debounceDelay = 50;
@@ -472,4 +465,58 @@ void IconMenu() {
   lcd.createChar(6, name1x8);
   lcd.setCursor(8, 1);
   lcd.write(6);
+}
+
+void shipGoing(){
+  byte i = 36;
+  ship();
+  lcd.setCursor(27, 1);
+  lcd.print("Wine Sea");
+  while(i <= 64){ 
+    delay(250);
+    lcd.scrollDisplayRight();
+    i++;
+  }
+}
+void ship(){
+  byte name0x0[] = { B01111, B11001, B11001, B01100, B00100, B00100, B00100, B01100 };
+  byte name0x1[] = { B11111, B00100, B00100, B10010, B10010, B10010, B10010, B10010 };
+  byte name0x2[] = { B11110, B10010, B10011, B01001, B01001, B01001, B01001, B01001 };
+  byte name0x3[] = { B00000, B00000, B00000, B00000, B00000, B00110, B00011, B00011 };
+  byte name1x0[] = { B11001, B11001, B00111, B00000, B10000, B11111, B11111, B01111 };
+  byte name1x1[] = { B00100, B00100, B11111, B01010, B01010, B01010, B11111, B11111 };
+  byte name1x2[] = { B10011, B10010, B11110, B00000, B00011, B11111, B11111, B11111 };
+  byte name1x3[] = { B00011, B00111, B01111, B11110, B11110, B11100, B11000, B10000 };
+
+  lcd.createChar(0, name0x0);
+  lcd.setCursor(36, 0);
+  lcd.write(byte(0));
+  
+  lcd.createChar(1, name0x1);
+  lcd.setCursor(37, 0);
+  lcd.write(byte(1));
+  
+  lcd.createChar(2, name0x2);
+  lcd.setCursor(38, 0);
+  lcd.write(byte(2));
+  
+  lcd.createChar(3, name0x3);
+  lcd.setCursor(39, 0);
+  lcd.write(byte(3));
+  
+  lcd.createChar(4, name1x0);
+  lcd.setCursor(36, 1);
+  lcd.write(byte(4));
+  
+  lcd.createChar(5, name1x1);
+  lcd.setCursor(37, 1);
+  lcd.write(byte(5));
+  
+  lcd.createChar(6, name1x2);
+  lcd.setCursor(38, 1);
+  lcd.write(byte(6));
+  
+  lcd.createChar(7, name1x3);
+  lcd.setCursor(39, 1);
+  lcd.write(byte(7));
 }
