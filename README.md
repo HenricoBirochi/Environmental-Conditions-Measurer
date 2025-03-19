@@ -57,18 +57,8 @@ Caso alguma das medições saia desses intervalos, um alerta será acionado por 
 
 ---
 
-## ⚙️ **Diagrama Elétrico**  
-📌 *(Insira aqui um diagrama elétrico do circuito real. Pode ser um desenho do Fritzing ou outro software de sua preferência.)*  
-
----
-
 ## 💾 **Código-Fonte**  
-Este projeto possui **duas versões do código**:  
-
-📌 **Código para a versão real do hardware:** [`codigo_real.ino`](./codigo_real.ino)  
-📌 **Código para a simulação no Wokwi:** [`codigo_wokwi.ino`](./codigo_wokwi.ino)  
-
-O código está comentado para facilitar o entendimento e modificação.  
+Este projeto possui uma constante chamada IS_REAL_SYSTEM, que pode ser 0, para simulações no Wokwi, e 1 para ser aplicada em ambiente real. Tal constante é usada sempre que há divergências entre tais implementações.
 
 🔗 **Simulação Wokwi:** [Acesse aqui](https://wokwi.com/projects/425625739198945281)  
 
@@ -90,6 +80,6 @@ O código está comentado para facilitar o entendimento e modificação.
 
 
 ## 🤝 **Créditos e Contribuições**  
-Desenvolvido por **Edgar C S Ribeiro, Vitor A Braghittoni, Henrico Birochi e Nicholas Birochi**.  
+Desenvolvido por **Edgar C S Ribeiro, Vítor Braghittoni, Henrico Birochi e Nicholas Birochi**.  
 
 Se gostou do projeto, ⭐ deixe um star no repositório!  
