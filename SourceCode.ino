@@ -6,7 +6,7 @@
 #include "pitches.h"
 
 // Definir se o código está sendo executado em um sistema real (1) ou no simulador (0)
-#define IS_REAL_SYSTEM 0
+#define IS_REAL_SYSTEM 1
 
 #define col 16             // Número de colunas do display
 #define lin 2              // Número de linhas do display
@@ -157,7 +157,7 @@ void loop() {
   float luminosity = analogRead(pinLDR);
 
 #if IS_REAL_SYSTEM
-  float lumen = map(luminosity, 444, 969, 100, 0);
+  float lumen = map(luminosity, 0, 512, 0, 100);
 #else
   float lumen = fakeLuminosity();
 #endif
@@ -459,7 +459,7 @@ void playMelodyPirateAndShipGoing() {
   for (int thisNote = 0; thisNote < 61; thisNote++) {
     lcd.scrollDisplayRight();
 
-    float noteDuration = 150 / noteDurationsPirate[thisNote];
+    float noteDuration = 250 / noteDurationsPirate[thisNote];
     tone(SPEAKER_PIN, melodyPirate[thisNote], noteDuration);
     
     int pauseBetweenNotes = noteDuration * 1.40;
