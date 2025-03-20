@@ -69,12 +69,84 @@ Este projeto possui uma constante chamada IS_REAL_SYSTEM, que pode ser 0, para s
 1️⃣ **Ligue o dispositivo** utilizando a bateria de 9V ou conexão USB.  
 2️⃣ **Os sensores começarão a capturar os dados ambientais** automaticamente.  
 3️⃣ O **LCD exibirá as medições em tempo real** (temperatura, umidade e luminosidade).  
-4️⃣ Se alguma medição sair da faixa segura, um **LED de alerta piscará** e o **buzzer emitirá um som**.  
+4️⃣ Se alguma medição sair da faixa segura, o **buzzer emitirá um som**.  
 5️⃣ Os registros são armazenados na **EEPROM**, permitindo consulta posterior.  
-6️⃣ Utilize os **botões de navegação** para visualizar registros salvos e configurar parâmetros.  
+
+---
+### 📖 **Manual de Utilização do Data Logger Ambiental**
 
 ---
 
+### 1️⃣ **Ligando o Aparelho**
+
+- **Ao ligar o dispositivo**, você verá uma animação inicial com a logo da nossa empresa. Após a animação, o dispositivo entrará automaticamente na tela de **Temperatura**, onde os dados do sensor de temperatura serão exibidos.
+
+---
+
+### 2️⃣ **Navegação entre as Telas**
+
+O dispositivo possui **dois botões principais** para navegação:
+
+- **Botão 1 (Navegação e Configuração)**: Permite acessar o menu de configurações, ou, caso você já esteja em uma tela de configurações, acionar uma opção específica.
+- **Botão 2 (Ciclo entre telas)**: Alterna entre as diferentes telas do dispositivo.
+
+As **4 telas** disponíveis no dispositivo são:
+
+1. **Tela de Temperatura**: Exibe os dados de temperatura coletados pelo sensor DHT11.
+2. **Tela de Umidade**: Exibe os dados de umidade coletados pelo sensor DHT11.
+3. **Tela de Luminosidade**: Exibe os dados de luminosidade coletados pelo sensor LDR.
+4. **Tela de Menu**: Tela principal com o ícone de um cacho de uva, onde você pode acessar as configurações do dispositivo.
+
+---
+
+### 3️⃣ **Tela de Configuração**
+
+Existem duas telas que possuem a **possibilidade de configuração**:  
+- **Tela de Temperatura**
+- **Tela de Menu**
+
+Para acessar as opções de configuração, siga os passos abaixo:
+
+1. **Pressione o Botão de Configuração** quando estiver em uma tela que possua opções de configuração.
+2. **A tela de Configuração aparecerá**. As opções configuráveis estarão disponíveis para você.
+3. **Para selecionar uma opção**, basta manter a opção desejada por **5 segundos** na tela. Isso fará com que a opção selecionada seja acionada.
+
+---
+
+### 4️⃣ **Exibindo Logs e Lendo o EEPROM**
+
+Se você deseja acessar os **Printar Log** ou **Chamar EEPROM**, siga os passos:
+
+1. **Acesse a tela de Menu** (com o ícone do cacho de uva).
+2. **Pressione o Botão de Configuração** para abrir as opções de configuração da tela de Menu.
+3. Nas opções de configuração, você encontrará as funções para **Printar Log** ou **Chamar o EEPROM**.
+4. **Selecione a opção desejada** e mantenha-o na tela por **5 segundos** para acionar a leitura dos registros.
+
+---
+
+### 5️⃣ **Alertas e Indicações**
+
+O dispositivo utiliza **alertas visuais e sonoros** para notificar quando algum parâmetro ambiental está fora da faixa segura:
+
+- **Temperatura**: Se a temperatura estiver fora do intervalo de 15°C a 25°C.
+- **Luminosidade**: Se a luminosidade estiver fora do intervalo de 0% a 30%.
+- **Umidade**: Se a umidade estiver fora do intervalo de 30% a 50%.
+
+Quando os parâmetros saírem da faixa estabelecida, o dispositivo emitirá um **alerta sonoro** através do **buzzer**.
+
+---
+
+### 6️⃣ **Resumo das Funções**
+
+| **Função**                        | **Botão de Configuração**                                | **Botão de Navegação**                           |
+|-----------------------------------|-----------------------------------------------------------|---------------------------------------------------|
+| **Acessar Configuração**          | Pressionar para abrir a tela de configurações.            | -                                                 |
+| **Alternar entre Telas**          | -                                                         | Alterna entre as telas de Temperatura, Umidade, Luminosidade e Menu. |
+| **Selecionar Opção de Configuração** | Manter a opção por 5 segundos  na tela para confirmar a seleção. | -                                                 |
+| **Ler Log Atual**                 | -                                                         | Acesse a tela de Menu e selecione a opção para ler os logs. |
+| **Ler EEPROM**                    | -                                                         | Acesse a tela de Menu e selecione a opção para ler os dados armazenados. |
+
+---
 ## 🎥 **Demonstração em Vídeo**  
 📌 https://youtu.be/ZiD1ola8Gg0?feature=shared  
 
