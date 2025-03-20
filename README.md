@@ -131,40 +131,24 @@ Embora os sensores utilizados no projeto tenham boa precisão dentro de suas fai
 
 ---
 
-## 🔧 **Especificações Técnicas**  
+## 🔧 **Especificações Técnicas e Lista de Materiais**  
 
-| **Componente**        | **Função** |
-|-----------------------|-----------|
-| **Microcontrolador**  | ATMEGA 328P (Arduino Uno R3) |
-| **Armazenamento**     | Memória EEPROM |
-| **RTC**              | Módulo DS3231 |
-| **Sensores**         | DHT11 (Temperatura/Umidade) + LDR (Luminosidade) |
-| **Display**         | LCD 16x2 - I2C |
-| **Controles**       | Botões de navegação e configuração |
-| **Indicadores**     | LEDs para status operacional |
-| **Alertas Sonoros** | Buzzer para notificações |
-| **Alimentação**     | Bateria de 9V |
+O Data Logger Ambiental utiliza os seguintes componentes para monitoramento e controle das condições ambientais:
 
-### 🔥 **Triggers (Gatilhos de Alerta)**  
+| **Componente**              | **Função/Descrição**                                                                                           |
+|-----------------------------|-----------------------------------------------------------------------------------------------------------------|
+| **Microcontrolador**         | **ATMEGA 328P (Arduino Uno R3)** - Processa os dados coletados pelos sensores.                                  |
+| **Armazenamento**            | **Memória EEPROM** - Armazena os dados coletados para análise posterior.                                        |
+| **RTC (Relógio de Tempo Real)** | **Módulo DS3231** - Garantia de registros precisos de tempo para os dados coletados.                            |
+| **Sensor de Temperatura/Umidade** | **DHT11** - Sensores para medição de temperatura e umidade. Precisão moderada, com faixa de 0°C a 50°C para temperatura e 20% a 90% para umidade. |
+| **Sensor de Luminosidade**  | **LDR (Resistor Dependente de Luz)** - Sensores para medir a intensidade de luz no ambiente.                    |
+| **Display LCD**             | **LCD 16x2 - I2C** - Exibe os dados em tempo real, como temperatura, umidade e luminosidade.                   |
+| **Botões de Controle**      | **Botões de navegação e configuração** - Permitem interação com o dispositivo e configuração de parâmetros.     |
+| **Indicadores LED**         | **LEDs** - Indicadores visuais de status operacional.                                                           |
+| **Alertas Sonoros**         | **Buzzer** - Emitirá alertas sonoros quando algum parâmetro estiver fora da faixa segura.                       |
+| **Alimentação**             | **Bateria de 9V** - Fornece energia para o sistema.                                                            |
 
-- **Temperatura:** 15°C < t < 25°C  
-- **Luminosidade:** 0% < l < 30%  
-- **Umidade:** 30% < u < 50%  
-
-Caso alguma das medições saia desses intervalos, um alerta será acionado por meio de LEDs e do buzzer.  
-
----
-
-## 📜 **Lista de Materiais**  
-
-- ✅ **1x Arduino Uno R3 (ATMEGA 328P)**  
-- ✅ **1x Sensor DHT11**  
-- ✅ **1x LDR + Resistor de 10KΩ**  
-- ✅ **1x Módulo RTC DS3231**  
-- ✅ **1x LCD 16x2 - I2C**  
-- ✅ **1x Buzzer**  
-- ✅ **1x Bateria de 9V + Suporte**  
-- ✅ **Protoboard, jumpers, LEDs e resistores**  
+Esses componentes juntos permitem o monitoramento eficiente das condições ambientais, com registro de dados, exibição em tempo real e alertas visuais e sonoros quando os parâmetros se afastam das faixas seguras.
 
 ---
 
