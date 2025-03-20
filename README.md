@@ -120,7 +120,6 @@ Este projeto utiliza três tipos principais de sensores para monitoramento ambie
   - O DHT11 possui uma precisão moderada para aplicações gerais, mas pode ter variações dependendo das condições ambientais.
 
 ### 3️⃣ **Sensor de Luminosidade (LDR)**  
-- **Unidade de Medida**: **Lux (lx)**  
 - **Faixa de Medição**: Depende da intensidade de luz disponível no ambiente.  
 - **Precisão**:  
   - A precisão do LDR depende diretamente da resistência do sensor e da quantidade de luz incidente sobre ele. Como a medição é feita de forma indireta, a precisão pode variar em ambientes com diferentes tipos de iluminação.  
