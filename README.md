@@ -20,59 +20,6 @@ O dispositivo pode ser utilizado em diversas aplicações, como laboratórios, e
 
 ---
 
-## 🔧 **Especificações Técnicas**  
-
-| **Componente**        | **Função** |
-|-----------------------|-----------|
-| **Microcontrolador**  | ATMEGA 328P (Arduino Uno R3) |
-| **Armazenamento**     | Memória EEPROM |
-| **RTC**              | Módulo DS3231 |
-| **Sensores**         | DHT11 (Temperatura/Umidade) + LDR (Luminosidade) |
-| **Display**         | LCD 16x2 - I2C |
-| **Controles**       | Botões de navegação e configuração |
-| **Indicadores**     | LEDs para status operacional |
-| **Alertas Sonoros** | Buzzer para notificações |
-| **Alimentação**     | Bateria de 9V |
-
-### 🔥 **Triggers (Gatilhos de Alerta)**  
-
-- **Temperatura:** 15°C < t < 25°C  
-- **Luminosidade:** 0% < l < 30%  
-- **Umidade:** 30% < u < 50%  
-
-Caso alguma das medições saia desses intervalos, um alerta será acionado por meio de LEDs e do buzzer.  
-
----
-
-## 📜 **Lista de Materiais**  
-
-- ✅ **1x Arduino Uno R3 (ATMEGA 328P)**  
-- ✅ **1x Sensor DHT11**  
-- ✅ **1x LDR + Resistor de 10KΩ**  
-- ✅ **1x Módulo RTC DS3231**  
-- ✅ **1x LCD 16x2 - I2C**  
-- ✅ **1x Buzzer**  
-- ✅ **1x Bateria de 9V + Suporte**  
-- ✅ **Protoboard, jumpers, LEDs e resistores**  
-
----
-
-## 💾 **Código-Fonte**  
-Este projeto possui uma constante chamada IS_REAL_SYSTEM, que pode ser 0, para simulações no Wokwi, e 1 para ser aplicada em ambiente real. Tal constante é usada sempre que há divergências entre tais implementações.
-
-🔗 **Simulação Wokwi:** [Acesse aqui](https://wokwi.com/projects/425956398534649857)  
-
----
-
-## 🛠 **Como Utilizar o Data Logger**  
-
-1️⃣ **Ligue o dispositivo** utilizando a bateria de 9V ou conexão USB.  
-2️⃣ **Os sensores começarão a capturar os dados ambientais** automaticamente.  
-3️⃣ O **LCD exibirá as medições em tempo real** (temperatura, umidade e luminosidade).  
-4️⃣ Se alguma medição sair da faixa segura, o **buzzer emitirá um som**.  
-5️⃣ Os registros são armazenados na **EEPROM**, permitindo consulta posterior.  
-
----
 ### 📖 **Manual de Utilização do Data Logger Ambiental**
 
 ---
@@ -147,9 +94,96 @@ Quando os parâmetros saírem da faixa estabelecida, o dispositivo emitirá um *
 | **Ler EEPROM**                    | -                                                         | Acesse a tela de Menu e selecione a opção para ler os dados armazenados. |
 
 ---
+
 ## 🎥 **Demonstração em Vídeo**  
 📌 https://youtu.be/ZiD1ola8Gg0?feature=shared  
 
+---
+
+## 📏 **Unidades de Medida e Precisão dos Sensores**  
+
+Este projeto utiliza três tipos principais de sensores para monitoramento ambiental: **temperatura**, **umidade** e **luminosidade**. Abaixo estão as unidades de medida utilizadas e a precisão dos sensores em questão:
+
+### 1️⃣ **Sensor de Temperatura (DHT11)**  
+- **Unidade de Medida**: **Celsius (°C)**  
+- **Faixa de Medição**: 0°C a 50°C  
+- **Precisão**:  
+  - **±2°C** na faixa de 0°C a 50°C  
+  - A precisão do DHT11 pode ser influenciada por variações de umidade e pela temperatura ambiente em que ele está inserido.
+  - No programa, a medição de temperatura pode ser convertida para Fahrenheit (°F) e para Kelvin (K), de acordo com a configuração.
+
+### 2️⃣ **Sensor de Umidade (DHT11)**  
+- **Unidade de Medida**: **Percentual de Umidade (%)**  
+- **Faixa de Medição**: 20% a 90% de umidade relativa  
+- **Precisão**:  
+  - **±5%** de umidade relativa (RH)  
+  - O DHT11 possui uma precisão moderada para aplicações gerais, mas pode ter variações dependendo das condições ambientais.
+
+### 3️⃣ **Sensor de Luminosidade (LDR)**  
+- **Unidade de Medida**: **Lux (lx)**  
+- **Faixa de Medição**: Depende da intensidade de luz disponível no ambiente.  
+- **Precisão**:  
+  - A precisão do LDR depende diretamente da resistência do sensor e da quantidade de luz incidente sobre ele. Como a medição é feita de forma indireta, a precisão pode variar em ambientes com diferentes tipos de iluminação.  
+  - **Variante de precisão**: A medição não é linear e pode ser influenciada por fatores como cor da superfície, distância da fonte de luz e intensidade da luz.
+
+### **Considerações sobre Precisão**  
+Embora os sensores utilizados no projeto tenham boa precisão dentro de suas faixas de medição, é importante lembrar que a precisão de cada sensor pode variar dependendo do ambiente em que ele está sendo utilizado. Para um controle mais rigoroso, é possível calibrar os sensores ou utilizar versões mais precisas, como o **DHT22** para temperatura e umidade, ou sensores LDR de maior qualidade.
+
+---
+
+## 🔧 **Especificações Técnicas**  
+
+| **Componente**        | **Função** |
+|-----------------------|-----------|
+| **Microcontrolador**  | ATMEGA 328P (Arduino Uno R3) |
+| **Armazenamento**     | Memória EEPROM |
+| **RTC**              | Módulo DS3231 |
+| **Sensores**         | DHT11 (Temperatura/Umidade) + LDR (Luminosidade) |
+| **Display**         | LCD 16x2 - I2C |
+| **Controles**       | Botões de navegação e configuração |
+| **Indicadores**     | LEDs para status operacional |
+| **Alertas Sonoros** | Buzzer para notificações |
+| **Alimentação**     | Bateria de 9V |
+
+### 🔥 **Triggers (Gatilhos de Alerta)**  
+
+- **Temperatura:** 15°C < t < 25°C  
+- **Luminosidade:** 0% < l < 30%  
+- **Umidade:** 30% < u < 50%  
+
+Caso alguma das medições saia desses intervalos, um alerta será acionado por meio de LEDs e do buzzer.  
+
+---
+
+## 📜 **Lista de Materiais**  
+
+- ✅ **1x Arduino Uno R3 (ATMEGA 328P)**  
+- ✅ **1x Sensor DHT11**  
+- ✅ **1x LDR + Resistor de 10KΩ**  
+- ✅ **1x Módulo RTC DS3231**  
+- ✅ **1x LCD 16x2 - I2C**  
+- ✅ **1x Buzzer**  
+- ✅ **1x Bateria de 9V + Suporte**  
+- ✅ **Protoboard, jumpers, LEDs e resistores**  
+
+---
+
+## 💾 **Código-Fonte**  
+Este projeto possui uma constante chamada IS_REAL_SYSTEM, que pode ser 0, para simulações no Wokwi, e 1 para ser aplicada em ambiente real. Tal constante é usada sempre que há divergências entre tais implementações.
+
+🔗 **Simulação Wokwi:** [Acesse aqui](https://wokwi.com/projects/425956398534649857)  
+
+---
+
+## 🛠 **Como Utilizar o Data Logger**  
+
+1️⃣ **Ligue o dispositivo** utilizando a bateria de 9V ou conexão USB.  
+2️⃣ **Os sensores começarão a capturar os dados ambientais** automaticamente.  
+3️⃣ O **LCD exibirá as medições em tempo real** (temperatura, umidade e luminosidade).  
+4️⃣ Se alguma medição sair da faixa segura, o **buzzer emitirá um som**.  
+5️⃣ Os registros são armazenados na **EEPROM**, permitindo consulta posterior.  
+
+---
 
 ## 🤝 **Créditos e Contribuições**  
 Desenvolvido por **[Edgar Camacho](https://github.com/Edgarcsr), [Henrico Birochi](https://github.com/henricobirochi), [Vítor Braghittoni](https://github.com/VBraghittoni), [Nicholas Birochi](https://github.com/nicholasbirochi), [Vinicius Yamaguti](https://github.com/ViniYama)**.  
