@@ -131,7 +131,7 @@ Embora os sensores utilizados no projeto tenham boa precisão dentro de suas fai
 
 ---
 
-## 🔧 **Especificações Técnicas e Lista de Materiais**  
+## 🔧 **Especificações Técnicas**  
 
 O Data Logger Ambiental utiliza os seguintes componentes para monitoramento e controle das condições ambientais:
 
